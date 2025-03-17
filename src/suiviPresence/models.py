@@ -33,7 +33,8 @@ class Participant(AbstractBaseUser):
     email = models.EmailField(unique=True)
     telephone = models.CharField(unique=True, max_length=15)
     genre = models.CharField(max_length=50)
-    filiere = models.CharField(max_length=255)
+    etablissement = models.CharField(max_length=255)
+    profession=models.CharField(max_length=255)
     niveau_etude= models.CharField( max_length=50)
     can_continue = models.BooleanField(default=True)
     date_inscription = models.DateField(auto_now_add=True)
@@ -44,14 +45,21 @@ class Participant(AbstractBaseUser):
         return f"{self.nom} {self.prenom}"
 
 class Seance(models.Model):
+    titre=models.CharField(max_length=255)
     date_debut = models.DateTimeField(auto_now_add=True)
     date_fin = models.DateTimeField(auto_now_add = True)
     description = models.TextField(blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
 class Presence(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
     seance = models.ForeignKey(Seance, on_delete=models.CASCADE)
     presence = models.BooleanField(default=False)
+    adresse_ip = models.GenericIPAddressField(null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    heure = models.DateTimeField(auto_now_add=True)
 
 
 class Groupe(models.Model):
