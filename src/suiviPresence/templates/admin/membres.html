@@ -1,0 +1,343 @@
+{% extends 'admin_base.html'%}
+{% load static %}
+
+{% block content %}
+
+{% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} d-flex justify-content-between" role="alert" id="alert-{{ forloop.counter }}">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-container .alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 1s ease-out';  
+                alert.style.opacity = 0;  
+                setTimeout(() => alert.style.display = 'none', 1000);  
+            });
+        }, 5000); 
+    </script>
+{% endif %}
+
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header ">
+                <div class="header-title d-flex justify-content-between">
+                    <h4 class="card-title">Listes des membres</h4>
+                    <div>
+                        
+                        <form action="{% url 'generer_pdf' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="anciennete" value="{% if request.path == '/anciens/membres/' %}True{% else %}False{% endif %}">
+                            <button type="submit" class="btn btn-success" style="border-radius: 40px;">
+                                <i class="bx bx-download"></i> Télécharger en PDF
+                            </button>
+                        </form>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-primary" style="border-radius:40px;" data-bs-toggle="modal" data-bs-target="#ajouterMembre">
+                            <i class='bx bx-user-plus'></i> Ajouter un membre
+                        </button>
+                    </div>
+                </div>
+
+
+                <div class="modal fade" id="ajouterMembre" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">Ajout d'un membre</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form action=" {% url 'membre' %}" method="POST">
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="form-group col-lg-6">
+                                            <label class="form-label">Nom de famille</label>
+                                            <input type="text" class="form-control" style="text-transform: uppercase"  name="nom">
+                                        </div>
+        
+                                        <div class="form-group col-lg-6">
+                                            <label class="form-label">Prénom(s)</label>
+                                            <input type="text" class="form-control" style="text-transform: capitalize" name="prenom">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group col-lg-6">
+                                            <label class="form-label">Partition</label>
+                                            <select class="form-control" name="partition">
+                                                <option value="ALTO">ALTO</option>
+                                                <option value="BASSE">BASSE</option>
+                                                <option value="SOPRANO">SOPRANO</option>
+                                                <option value="TENOR">TENOR</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group col-lg-6">
+                                            <label class="form-label">Téléphone</label>
+                                            <input type="text" class="form-control" name="telephone" >
+                                        </div>
+                                    </row>
+        
+                                    <div class="row">
+                                        <div class="form-group col-lg-6">
+                                            <label class="form-label">Filière</label>
+                                            <input type="text" class="form-control"  name="filiere">
+                                        </div>
+        
+                                        <div class="form-group col-lg-6">
+                                            <label  class="form-label">Université</label>
+                                            <input type="text"  class="form-control"  name="universite">
+                                        </div>
+                                    </div>
+        
+        
+                                    <div class="row">
+                                        
+                                        <div class="form-group col-lg-6">
+                                            <label class="form-label">Ancien</label>
+                                            <input type="checkbox" class="form-control" name="ancien"  >
+                                        </div>
+                                        <div class="form-group col-lg-6">
+                                            <label for="text" class="form-label">Date d'adhésion </label>
+                                            <input type="datetime-local" class="form-control" name="date_adhesion">
+                                        </div>
+                                    </div>
+        
+                                    <div class="text-start mt-2 d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Annuler</button>
+                                        <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="card-body">
+            <div class="table-responsive">
+                <table id="datatable" class="table table-striped" data-toggle="data-table">
+                    <thead>
+                       
+                        <tr >
+                        <th style="text-transform:none;">Nom de famille</th>
+                        <th style="text-transform:none;">Prénom(s)</th>
+                        <th>Téléphone</th>
+                        <th>Partition</th>
+                        <th style="text-transform:none;">Date d'adhésion</th>
+                        <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for membre in membres %}
+
+                        <tr>
+                            <td>{{ membre.nom }}</td>
+                            <td>{{ membre.prenom }}</td>
+                            <td>{{ membre.telephone }}</td>
+                            <td>{{ membre.partition }}</td>
+                            <td>{{ membre.date_adhesion|date:"d M Y"  }}</td>
+                            <td>
+                                <button class="btn btn-secondary" type="button" style="border-radius: 40px;" data-bs-target="#plusMembre{{ membre.id }}" data-bs-toggle="modal">
+                                    <i class='bx bx-dots-horizontal-rounded'></i>
+                                </button>
+                                <button class="btn btn-warning" type="button" style="border-radius: 40px;" data-bs-target="#modifierMembre{{ membre.id }}" data-bs-toggle="modal">
+                                    <i class='bx bxs-edit-alt'></i>
+                                </button>
+                                <button class="btn btn-danger" type="button" style="border-radius: 40px;" data-bs-target="#supprimerMembre{{ membre.id }}" data-bs-toggle="modal">
+                                    <i class='bx bx-trash'></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="plusMembre{{ membre.id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel">Détails d'un membre</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                       
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Nom de famille</label>
+                                                    <input type="text" class="form-control" style="text-transform: uppercase"  name="nom" value={{ membre.nom }}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Prénom(s)</label>
+                                                    <input type="text" class="form-control" style="text-transform: capitalize" name="prenom" value={{ membre.prenom }}>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Téléphone</label>
+                                                    <input type="text" class="form-control"  value={{ membre.telephone }}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label for="text" class="form-label">Partition </label>
+                                                    <input type="text" class="form-control"  value={{ membre.partition  }}>
+                                                </div>
+                                            </div>
+                
+                
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Filière</label>
+                                                    <input type="text" class="form-control"  name="filiere" value={{ membre.filiere }}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label  class="form-label">Université</label>
+                                                    <input type="text"  class="form-control"  name="universite" value={{ membre.universite }}>
+                                                </div>
+                                            </div>
+                
+                
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Ancien</label>
+                                                    <input type="checkbox" class="form-control"  {% if membre.ancien %}checked{% endif %}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label for="text" class="form-label">Date d'adhésion </label>
+                                                    <input type="datetime-local" class="form-control" name="date_adhesion" value={{ membre.date_adhesion|date:'Y-m-d\TH:i'  }}>
+                                                </div>
+                                            </div>
+                
+                                            <div class="text-start mt-2 d-flex justify-content-end gap-2">
+                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Fermer</button>
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="modifierMembre{{ membre.id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel">Modification d'un membre</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{% url 'modifier_membre' membre.id %}" method="POST">
+                                            {% csrf_token %}
+
+                                            
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Nom de famille</label>
+                                                    <input type="text" class="form-control" style="text-transform: uppercase"  name="nom" value={{ membre.nom }}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Prénom(s)</label>
+                                                    <input type="text" class="form-control" style="text-transform: capitalize" name="prenom" value={{ membre.prenom }}>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Téléphone</label>
+                                                    <input type="text" class="form-control" name="telephone" value={{ membre.telephone }}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label for="text" class="form-label">Partition </label>
+                                                    <input type="text" class="form-control" name="partition" value={{ membre.partition  }}>
+                                                </div>
+                                            </div>
+                
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Filière</label>
+                                                    <input type="text" class="form-control"  name="filiere" value={{ membre.filiere }}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label  class="form-label">Université</label>
+                                                    <input type="text"  class="form-control"  name="universite" value={{ membre.universite }}>
+                                                </div>
+                                            </div>
+                
+                
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Ancien</label>
+                                                    <input type="checkbox" class="form-control" name="ancien"  {% if membre.ancien %} checked {% endif %}>
+                                                </div>
+                
+                                                <div class="form-group col-lg-6">
+                                                    <label for="text" class="form-label">Date d'adhésion </label>
+                                                    <input type="datetime-local" class="form-control" name="date_adhesion" value={{ membre.date_adhesion|date:'Y-m-d\TH:i'  }}>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Rôle</label>
+                                                    <select class="form-control" name="role">
+                                                        <option value="MEMBRE" {% if membre.role == 'MEMBRE' %}selected{% endif %}>MEMBRE</option>
+                                                        <option value="BUREAU" {% if membre.role == 'BUREAU' %}selected{% endif %}>BUREAU</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group col-lg-6">
+                                                    <label class="form-label">Statut</label>
+                                                    <input type="checkbox" class="form-control" {% if membre.statut %}checked{% endif %} name="statut">
+                                                </div>
+                                            </div>
+                
+                                            <div class="text-start mt-2 d-flex justify-content-end gap-2">
+                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal fade" id="supprimerMembre{{ membre.id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="staticBackdropLabel">Suppression d'un membre</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{% url 'supprimer_membre' membre.id %}" method="POST">
+                                            {% csrf_token %}
+                                           <p>Êtes vous sûr de vouloir supprimer cet membre ? cette action est irreversible.</p>
+                
+                                            <div class="text-start mt-2 d-flex justify-content-end gap-2">
+                                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-primary">Supprimer</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                       
+                    </tbody>
+                </table>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock%}

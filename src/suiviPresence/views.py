@@ -1,7 +1,8 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from django.shortcuts import get_object_or_404
-from .models import Participant, Presence, Seance
+from .models import Participant, Presence, Seance, Activite
 import geopy.distance
+from django.http import JsonResponse
 from django.contrib import messages
 
 # Create your views here.
@@ -10,7 +11,7 @@ def accueil(request):
 
 
 def interface_admin(request):
-    return render(request, 'admin_index.html')
+    return render(request, 'admin/admin_index.html')
 
 
 
@@ -58,7 +59,7 @@ def verifier_localisation(latitude_user, longitude_user, latitude_cible, longitu
     return False
 
 
-def ajouter_seance(request):
+def seances(request):
     if request.method == 'POST':
         nom = request.POST.get('nom')
         description = request.POST.get('description')
@@ -78,5 +79,74 @@ def ajouter_seance(request):
 
         messages.success(request, "Séance ajoutée avec succès.")
         return redirect('liste_seances')
+    seances = Seance.objects.all()
 
-    return render(request, 'seance/ajouter_seance.html')
+    return render(request, 'admin/seances.html')
+
+def modifier_seance(request, seance_id):
+    pass
+def supprimer_seance(request, seance_id):
+    pass
+
+
+def liste_activites(request):
+    activites = Activite.objects.all()
+    return render(request, 'admin/activites.html', {'activites': activites})
+
+def ajouter_activite(request):
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        libelle = request.POST.get('libelle')
+        Activite.objects.create(code=code, libelle=libelle)
+        messages.success(request, 'Activité ajoutée avec succès !')
+        return redirect('liste_activites')
+    return redirect('liste_activites')
+
+def modifier_activite(request, id):
+    activite = Activite.objects.get(id=id)
+    if request.method == 'POST':
+        activite.code = request.POST.get('code')
+        activite.libelle = request.POST.get('libelle')
+        activite.save()
+        messages.success(request, 'Activité modifiée avec succès !')
+        return redirect('liste_activites')
+    return redirect('liste_activites')
+
+def supprimer_activite(request, id):
+    activite = Activite.objects.get(id=id)
+    if request.method == 'POST':
+        activite.delete()
+        messages.success(request, 'Activité supprimée avec succès !')
+    return redirect('liste_activites')
+
+
+def regenerer_code(request, id):
+    try:
+        activite = Activite.objects.get(id=id)
+        nouveau_code = Activite.generate_unique_code()
+        activite.code = nouveau_code
+        activite.save()
+        return JsonResponse({'success': True, 'new_code': nouveau_code})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+    
+
+def programmer_seance(request):
+    if request.method == 'POST':
+        try:
+            Seance.objects.create(
+                activite_id=request.POST.get('activite'),
+                titre=request.POST.get('titre'),
+                date_debut=request.POST.get('date_debut'),
+                date_fin=request.POST.get('date_fin'),
+                description=request.POST.get('description'),
+                latitude=request.POST.get('latitude'),
+                longitude=request.POST.get('longitude'),
+            )
+            messages.success(request, 'Séance créée avec succès!')
+            return redirect('seance')
+        except Exception as e:
+            messages.error(request, f'Erreur: {str(e)}')
+    
+    activites = Activite.objects.all()
+    return render(request, 'admin/seances.html', {'activites': activites})

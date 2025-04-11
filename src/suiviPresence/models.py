@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-
+import random
+import string
 
 class MyUserManager(BaseUserManager):
     
@@ -43,12 +44,36 @@ class Participant(AbstractBaseUser):
 
     def __str__(self):
         return f"{self.nom} {self.prenom}"
-
+    
+class Activite(models.Model):
+    libelle = models.CharField(max_length=255)
+    code = models.CharField(max_length=8, unique=True)  # Longueur fixe pour uniformité
+    
+    def __str__(self):
+        return f"{self.libelle} ({self.code})"
+    
+    def save(self, *args, **kwargs):
+        if not self.code:  # Si nouveau objet sans code
+            self.code = self.generate_unique_code()
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def generate_unique_code(cls, length=6):
+        while True:
+            # 2 lettres + 4 chiffres (ex: AB1234)
+            letters = ''.join(random.choices(string.ascii_uppercase, k=2))
+            numbers = ''.join(random.choices(string.digits, k=4))
+            code = f"{letters}{numbers}"
+            
+            if not cls.objects.filter(code=code).exists():
+                return code
+    
 class Seance(models.Model):
-    titre=models.CharField(max_length=255)
+    activite = models.ForeignKey(Activite, on_delete=models.CASCADE)
+    titre=models.CharField(max_length=255, blank=True, null=True)
     date_debut = models.DateTimeField(auto_now_add=True)
     date_fin = models.DateTimeField(auto_now_add = True)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 

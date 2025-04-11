@@ -1,0 +1,212 @@
+{% extends 'admin/admin_base.html' %}
+{% load static %}
+
+{% block content %}
+{% if messages %}
+    <div class="alert-container">
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} d-flex justify-content-between" role="alert" id="alert-{{ forloop.counter }}">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-container .alert');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 1s ease-out';  
+                alert.style.opacity = 0;  
+                setTimeout(() => alert.style.display = 'none', 1000);  
+            });
+        }, 5000); 
+    </script>
+{% endif %}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="header-title d-flex justify-content-between">
+                    <h4 class="card-title">Liste des Activités</h4>
+                    <div>
+                        <button type="button" class="btn btn-primary" style="border-radius:40px;" data-bs-toggle="modal" data-bs-target="#ajouterActivite">
+                            <i class='bx bx-plus'></i> Ajouter une activité
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table id="datatable" class="table table-striped" data-toggle="data-table">
+                        <thead>
+                            <tr>
+                                <th>Libellé</th>
+                                <th>Code</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for activite in activites %}
+                            <tr>
+                                <td>{{ activite.libelle }}</td>
+                                <td>{{ activite.code }}</td>
+                                <td>
+                                    <button class="btn btn-secondary" type="button" style="border-radius: 40px;" data-bs-target="#detailsActivite{{ activite.id }}" data-bs-toggle="modal">
+                                        <i class='bx bx-dots-horizontal-rounded'></i>
+                                    </button>
+                                    <button class="btn btn-info" type="button" style="border-radius: 40px;" onclick="regenererCode('{{ activite.id }}')">
+                                        <i class='bx bx-refresh'></i>
+                                    </button>                                
+                                    <button class="btn btn-warning" type="button" style="border-radius: 40px;" data-bs-target="#modifierActivite{{ activite.id }}" data-bs-toggle="modal">
+                                        <i class='bx bxs-edit-alt'></i>
+                                    </button>
+                                    <button class="btn btn-danger" type="button" style="border-radius: 40px;" data-bs-target="#supprimerActivite{{ activite.id }}" data-bs-toggle="modal">
+                                        <i class='bx bx-trash'></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Modal Détails Activité -->
+                            <div class="modal fade" id="detailsActivite{{ activite.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Détails de l'activité</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <p><strong>Code :</strong> {{ activite.code }}</p>
+                                                </div>
+                                                <div class="col-6">
+                                                    <p><strong>Libellé :</strong> {{ activite.libelle }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal Modifier Activité -->
+                            <div class="modal fade" id="modifierActivite{{ activite.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Modifier l'activité</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form method="POST" action="{% url 'modifier_activite' activite.id %}">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-12 mb-3">
+                                                        <label class="form-label">Code</label>
+                                                        <input type="text" class="form-control" name="code" value="{{ activite.code }}" required>
+                                                    </div>
+                                                    <div class="col-12 mb-3">
+                                                        <label class="form-label">Libellé</label>
+                                                        <input type="text" class="form-control" name="libelle" value="{{ activite.libelle }}" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal Supprimer Activité -->
+                            <div class="modal fade" id="supprimerActivite{{ activite.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Supprimer l'activité</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form method="POST" action="{% url 'supprimer_activite' activite.id %}">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <p>Êtes-vous sûr de vouloir supprimer l'activité <strong>{{ activite.libelle }}</strong> ?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-danger">Supprimer</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ajouter Activité -->
+<div class="modal fade" id="ajouterActivite" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter une activité</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'ajouter_activite' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Libellé </label>
+                            <input type="text" class="form-control" name="libelle" required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Code (laisser vide pour générer automatiquement)</label>
+                            <input type="text" class="form-control" name="code" maxlength="6" 
+                                   pattern="[A-Z]{2}\d{4}" title="2 lettres majuscules suivies de 4 chiffres (ex: AB1234)">
+                            <small class="text-muted">Format: 2 lettres + 4 chiffres</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function regenererCode(activiteId) {
+        if (confirm("Générer un nouveau code pour cette activité ?")) {
+            fetch(`/regenerer-code/${activiteId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();  
+                } else {
+                    alert("Erreur : " + data.error);
+                }
+            });
+        }
+    }
+    </script>
+
+{% endblock %}
