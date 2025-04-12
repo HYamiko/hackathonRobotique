@@ -39,7 +39,7 @@ class Participant(AbstractBaseUser):
     niveau_etude= models.CharField( max_length=50)
     can_continue = models.BooleanField(default=True)
     date_inscription = models.DateField(auto_now_add=True)
-    object= MyUserManager()
+    objects= MyUserManager()
     USERNAME_FIELD = 'telephone'
 
     def __str__(self):
@@ -47,20 +47,19 @@ class Participant(AbstractBaseUser):
     
 class Activite(models.Model):
     libelle = models.CharField(max_length=255)
-    code = models.CharField(max_length=8, unique=True)  # Longueur fixe pour uniformité
+    code = models.CharField(max_length=8, unique=True)  
     
     def __str__(self):
         return f"{self.libelle} ({self.code})"
     
     def save(self, *args, **kwargs):
-        if not self.code:  # Si nouveau objet sans code
+        if not self.code:  
             self.code = self.generate_unique_code()
         super().save(*args, **kwargs)
     
     @classmethod
     def generate_unique_code(cls, length=6):
         while True:
-            # 2 lettres + 4 chiffres (ex: AB1234)
             letters = ''.join(random.choices(string.ascii_uppercase, k=2))
             numbers = ''.join(random.choices(string.digits, k=4))
             code = f"{letters}{numbers}"

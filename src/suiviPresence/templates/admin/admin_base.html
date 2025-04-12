@@ -109,7 +109,7 @@
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/membres/' %}active{% endif %}"   href="#" role="button" aria-expanded="false" aria-controls="sidebar-special">
+                        <a class="nav-link {% if request.path == '/participants/' %}active{% endif %}"   href="{% url 'participant' %}" role="button" aria-expanded="false" aria-controls="sidebar-special">
                             <i class='bx bx-group'></i>
                             <span class="item-name">Participants</span>
                         </a>

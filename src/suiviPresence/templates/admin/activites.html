@@ -29,7 +29,7 @@
         <div class="card">
             <div class="card-header">
                 <div class="header-title d-flex justify-content-between">
-                    <h4 class="card-title">Liste des Activités</h4>
+                    <h4 class="card-title">Liste des activités</h4>
                     <div>
                         <button type="button" class="btn btn-primary" style="border-radius:40px;" data-bs-toggle="modal" data-bs-target="#ajouterActivite">
                             <i class='bx bx-plus'></i> Ajouter une activité
@@ -68,7 +68,7 @@
                                 </td>
                             </tr>
 
-                            <!-- Modal Détails Activité -->
+                            <!-- Modal de voir plus  -->
                             <div class="modal fade" id="detailsActivite{{ activite.id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -93,7 +93,7 @@
                                 </div>
                             </div>
 
-                            <!-- Modal Modifier Activité -->
+                            <!-- Modal de modification d'une activite -->
                             <div class="modal fade" id="modifierActivite{{ activite.id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -124,7 +124,7 @@
                                 </div>
                             </div>
 
-                            <!-- Modal Supprimer Activité -->
+                            <!-- Modal de suppression -->
                             <div class="modal fade" id="supprimerActivite{{ activite.id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -154,7 +154,7 @@
     </div>
 </div>
 
-<!-- Modal Ajouter Activité -->
+<!-- Modal d'ajout d'activite -->
 <div class="modal fade" id="ajouterActivite" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -189,7 +189,7 @@
 
 <script>
     function regenererCode(activiteId) {
-        if (confirm("Générer un nouveau code pour cette activité ?")) {
+        if (confirm("Voulez-vous générer un nouveau code pour cette activité ?")) {
             fetch(`/regenerer-code/${activiteId}/`, {
                 method: 'POST',
                 headers: {

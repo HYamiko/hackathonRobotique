@@ -14,6 +14,9 @@ def interface_admin(request):
     return render(request, 'admin/admin_index.html')
 
 
+def participants(request):
+    participants = Participant.objects.all()
+    return render(request, 'admin/participants.html', {'participants': participants})
 
 def get_adresse_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -60,34 +63,54 @@ def verifier_localisation(latitude_user, longitude_user, latitude_cible, longitu
 
 
 def seances(request):
-    if request.method == 'POST':
-        nom = request.POST.get('nom')
-        description = request.POST.get('description')
-        latitude = request.POST.get('latitude')
-        longitude = request.POST.get('longitude')
-
-        if not latitude or not longitude:
-            messages.error(request, "Veuillez sélectionner un emplacement sur la carte.")
-            return redirect('ajouter_seance')
-
-        Seance.objects.create(
-            nom=nom,
-            description=description,
-            latitude=float(latitude),
-            longitude=float(longitude),
-        )
-
-        messages.success(request, "Séance ajoutée avec succès.")
-        return redirect('liste_seances')
     seances = Seance.objects.all()
-
-    return render(request, 'admin/seances.html')
+    activites = Activite.objects.all()
+    return render(request, 'admin/seances.html', {'seances': seances, 'activites': activites})
 
 def modifier_seance(request, seance_id):
-    pass
-def supprimer_seance(request, seance_id):
-    pass
+    try:
+        seance = Seance.objects.get(id=seance_id)
+        
+        if request.method == 'POST':
+            titre=request.POST.get('titre')
+            date_debut=request.POST.get('date_debut')
+            date_fin=request.POST.get('date_fin')
+            description=request.POST.get('description')
 
+
+            seance.titre = titre
+            seance.description = description
+            seance.date_debut = date_debut
+            seance.date_fin = date_fin
+            seance.save()
+
+            messages.success(request, "Séance modifiée avec succès.")
+            return redirect('seance')
+            
+        activites = Activite.objects.all()
+        return render(request, 'admin/seances.html', {
+            'seance': seance,
+            'activites': activites
+        })
+        
+    except Seance.DoesNotExist:
+        messages.error(request, "La séance demandée n'existe pas.")
+        return redirect('seance')
+
+def supprimer_seance(request, seance_id):
+    try:
+        seance = Seance.objects.get(id=seance_id)
+        
+        if request.method == 'POST':
+            seance.delete()
+            messages.success(request, "Séance supprimée avec succès.")
+            return redirect('seance')
+            
+        return render(request, 'admin/seances.html', {'seance': seance})
+        
+    except Seance.DoesNotExist:
+        messages.error(request, "Cette séance n'existe pas.")
+        return redirect('seance')
 
 def liste_activites(request):
     activites = Activite.objects.all()

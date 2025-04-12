@@ -31,7 +31,7 @@
         <div class="card">
             <div class="card-header ">
                 <div class="header-title d-flex justify-content-between">
-                    <h4 class="card-title">Listes des seances</h4>
+                    <h4 class="card-title">Listes des séances</h4>
                     <div>
                         <button type="button" class="btn btn-primary" style="border-radius:40px;" data-bs-toggle="modal" data-bs-target="#programmerSeance">
                             <i class='bx bx-user-plus'></i> Programmer une séance
@@ -43,7 +43,7 @@
                     <div class="modal-dialog modal-lg">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Programmer une Séance</h5>
+                                <h5 class="modal-title">Programmer une séance</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <form method="POST" action="{% url 'programmer_seance' %}">
@@ -51,27 +51,26 @@
                                 <div class="modal-body">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Activité *</label>
+                                            <label class="form-label">Activité </label>
                                             <select class="form-select" name="activite" required>
-                                                <option value="">Sélectionnez une activité</option>
                                                 {% for activite in activites %}
                                                 <option value="{{ activite.id }}">{{ activite.libelle }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Titre *</label>
+                                            <label class="form-label">Titre </label>
                                             <input type="text" class="form-control" name="titre" required>
                                         </div>
                                     </div>
                 
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Date de début *</label>
+                                            <label class="form-label">Date de début </label>
                                             <input type="datetime-local" class="form-control" name="date_debut" required>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label class="form-label">Date de fin *</label>
+                                            <label class="form-label">Date de fin </label>
                                             <input type="datetime-local" class="form-control" name="date_fin" required>
                                         </div>
                                     </div>
@@ -82,7 +81,7 @@
                                     </div>
                 
                                     <div class="mb-3">
-                                        <label class="form-label">Lieu *</label>
+                                        <label class="form-label">Lieu </label>
                                         <div class="input-group mb-3">
                                             <input type="text" id="adresse" class="form-control" placeholder="Rechercher une adresse" name="adresse">
                                             <button class="btn btn-outline-secondary" type="button" id="rechercher-adresse">
@@ -144,7 +143,7 @@
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title" id="staticBackdropLabel">Détails de la Séance</h5>
+                                            <h5 class="modal-title" id="staticBackdropLabel">Détails de la séance</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
@@ -181,12 +180,12 @@
                                 </div>
                             </div>
                 
-                            <!-- Modal Modifier Séance -->
+                            <!-- Modal de modification de la seance -->
                             <div class="modal fade" id="modifierSeance{{ seance.id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title" id="staticBackdropLabel">Modifier la Séance</h5>
+                                            <h5 class="modal-title" id="staticBackdropLabel">Modifier une séance</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
@@ -228,12 +227,12 @@
                                 </div>
                             </div>
                 
-                            <!-- Modal Supprimer Séance -->
+                            <!-- Modal de suppression d'une seance -->
                             <div class="modal fade" id="supprimerSeance{{ seance.id }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title" id="staticBackdropLabel">Suppression d'une Séance</h5>
+                                            <h5 class="modal-title" id="staticBackdropLabel">Suppression d'une séance</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
@@ -365,21 +364,26 @@
             }
     
             function updateMapPosition(pos, title) {
-                map.setCenter(pos);
+                const lat = typeof pos.lat === 'function' ? pos.lat() : pos.lat;
+                const lng = typeof pos.lng === 'function' ? pos.lng() : pos.lng;
                 
-                if (marker) marker.map = null;
+                const position = { lat, lng }; 
+                
+                map.setCenter(position);
+    
+                if (marker) marker.setMap(null);
                 marker = new google.maps.Marker({
                     map,
-                    position: pos,
+                    position: position,
                     title: title
                 });
+    
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lng;
                 
-                latitudeInput.value = pos.lat;
-                longitudeInput.value = pos.lng;
-                
-                geocoder.geocode({ location: pos }, (results) => {
+                geocoder.geocode({ location: position }, (results) => {
                     if (results?.[0]) {
-                        adresseInput.value = results[0].formatted_address;
+                        document.getElementById('adresse').value = results[0].formatted_address;
                     }
                 });
             }
@@ -403,7 +407,6 @@
             
                         if (results && results[0]) {
                             updateMapPosition(results[0].geometry.location, "Adresse recherchée");
-                            // Mise à jour supplémentaire pour s'assurer que l'adresse est exacte
                             adresseInput.value = results[0].formatted_address;
                         } else {
                             alert("Adresse non trouvée. Essayez avec une adresse plus complète.");
@@ -424,6 +427,7 @@
           
     
             map.addListener('click', (e) => {
+                if (!e.latLng) return;
                 updateMapPosition(e.latLng, "Position sélectionnée");
             });
     

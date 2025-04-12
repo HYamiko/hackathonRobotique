@@ -16,4 +16,5 @@ urlpatterns = [
     path('supprimer-activite/<int:id>/', views.supprimer_activite, name='supprimer_activite'),
     path('regenerer-code/<int:id>/', views.regenerer_code, name='regenerer_code'),
     path('programmer-seance/', views.programmer_seance, name='programmer_seance'),
+    path('participants/', views.participants, name="participant")
 ]
